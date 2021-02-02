@@ -1,0 +1,30 @@
+{
+  "name": "videoconverterapi",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/chotubhai/videoconverterapi.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/chotubhai/videoconverterapi/issues"
+  },
+  "homepage": "https://github.com/chotubhai/videoconverterapi#readme",
+  "dependencies": {
+    "@google-cloud/storage": "^5.7.4",
+    "busboy": "^0.3.1",
+    "dotenv": "^8.2.0",
+    "express": "^4.17.1",
+    "fluent-ffmpeg": "^2.1.2",
+    "kue": "^0.11.6",
+    "mongoose": "^5.11.14",
+    "rimraf": "^3.0.2"
+  }
+}
