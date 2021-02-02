@@ -77,6 +77,6 @@ app.get("/video/:id",(req,res)=>{
 
 app.use("/queue/", kue.app);
 
-app.listen(process.env.port || 5000, () =>
+app.listen(process.env.PORT || 5000, () =>
   console.log("Example app listening !")
 );
