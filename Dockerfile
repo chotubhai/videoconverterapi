@@ -13,4 +13,4 @@ COPY . /app
 
 EXPOSE 5000
 
-CMD ["pm2-runtime start server.js -i 0"]
+CMD ["sh", "-c", "pm2-runtime start server.js -i 0 && pm2-runtime start worker.js"]
