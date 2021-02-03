@@ -77,7 +77,7 @@ app.get("/video/:id",(req,res)=>{
   }).catch(e=> {console.log(e); res.send(e)})
 })
 
-app.use("/queue/", kue.app);
+app.use("/queue/", (req,res,next)=>{res.set("Cache-Control","no-cache","no-store")},kue.app);
 
 app.listen(process.env.PORT || 5000, () =>
   console.log("Example app listening !")
