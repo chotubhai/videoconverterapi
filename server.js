@@ -5,6 +5,8 @@ const rand = require("crypto").randomBytes;
 const Busboy = require("busboy");
 const path = require("path");
 const fs = require("fs");
+const os = require("os");
+const tempdir = os.tmpdir();
 const videoModel = require("./schema").videoModel;
 const mongoose = require("mongoose");
 
@@ -28,11 +30,11 @@ var queue = kue.createQueue({
 
 app.post("/video", (req, res) => {
   let fileuuid = rand(8).toString("hex");
-  fs.mkdirSync(path.join(".", "views", fileuuid), { recursive: true });
+  fs.mkdirSync(path.join(tempdir, "views", fileuuid), { recursive: true });
   let _filename;
   var busboy = new Busboy({ headers: req.headers });
   busboy.on("file", function (fieldname, file, filename) {
-    var saveTo = path.join(".", "views", fileuuid, filename);
+    var saveTo = path.join(tempdir, "views", fileuuid, filename);
     file.pipe(fs.createWriteStream(saveTo));
 
     _filename = filename;
@@ -46,7 +48,7 @@ app.post("/video", (req, res) => {
       .then((video) => {
         const job = queue
           .create("convert", {
-            path: path.join(".", "views", fileuuid, _filename),
+            path: path.join(tempdir, "views", fileuuid, _filename),
             fileuuid,
             _filename,
             _id: video._id,

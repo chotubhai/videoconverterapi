@@ -7,6 +7,8 @@ const myBucket = new Storage().bucket("video21984");
 const videoModel = require("./schema").videoModel;
 const mongoose = require("mongoose");
 var rimraf = require("rimraf");
+const os = require("os");
+const tempdir = os.tmpdir();
 const path = require("path");
 
 mongoose
@@ -27,45 +29,47 @@ var queue = kue.createQueue({
 });
 
 queue.process("convert", (job, done) => {
-  console.log(job.data)
+  console.log(job.data);
   ffmpeg()
     .input(job.data.path)
     .videoCodec("libx264")
     .videoBitrate("1000")
     .size("640x?")
     .format("mp4")
-    .output(`./views/${job.data.fileuuid}/${job.data._filename}-640.mp4`)
+    .output(
+      `${tempdir}/views/${job.data.fileuuid}/${job.data._filename}-640.mp4`
+    )
     .on("end", () => {
       const bucketfile = myBucket.file(
         job.data.fileuuid + "/" + job.data._filename
-        );
-        const compressedBucketfile = myBucket.file(
-          job.data.fileuuid + "/" + job.data._filename + "-640.mp4"
-          );
-          const file = fs.createReadStream(job.data.path);
-          const compressed = fs.createReadStream(
-            `./views/${job.data.fileuuid}/${job.data._filename}-640.mp4`
-            );
-            file
+      );
+      const compressedBucketfile = myBucket.file(
+        job.data.fileuuid + "/" + job.data._filename + "-640.mp4"
+      );
+      const file = fs.createReadStream(job.data.path);
+      const compressed = fs.createReadStream(
+        `${tempdir}/views/${job.data.fileuuid}/${job.data._filename}-640.mp4`
+      );
+      file
+        .pipe(
+          bucketfile.createWriteStream({
+            gzip: true,
+            //destination does not work
+            predefinedAcl: "publicRead",
+          })
+        )
+        .on("finish", () => {
+          compressed
             .pipe(
-              bucketfile.createWriteStream({
+              compressedBucketfile.createWriteStream({
                 gzip: true,
                 //destination does not work
                 predefinedAcl: "publicRead",
               })
-              )
-              .on("finish", () => {
-          compressed
-          .pipe(
-            compressedBucketfile.createWriteStream({
-              gzip: true,
-              //destination does not work
-              predefinedAcl: "publicRead",
-            })
             )
             .on("finish", () => {
               //delete local file and update db
-              rimraf(path.join(".", "views", job.data.fileuuid), () => {
+              rimraf(path.join(tempdir, "views", job.data.fileuuid), () => {
                 videoModel
                   .updateOne(
                     { _id: job.data._id },
@@ -85,7 +89,7 @@ queue.process("convert", (job, done) => {
                   )
                   .then((video) => {
                     console.log(video);
-                    done()
+                    done();
                   });
               });
             });
